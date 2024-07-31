@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Star Wars API</title>
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Star Wars API</h1>
+  <select id="entityType">
+    <option value="people">People</option>
+    <option value="planets">Planets</option>
+    <option value="starships">Starships</option>
+    <option value="films">Films</option>
+    <option value="species">Species</option>
+    <option value="vehicles">Vehicles</option>
+  </select>
+  <input type="number" id="entityId" min="1" max="10" value="1">
+  <button id="searchButton">Search</button>
+
+  <div id="loader" class="hidden">Loading...</div>
+  <div id="result"></div>
+  <div id="error" class="hidden"></div>
+
+  <script>
+    // Получение ссылок на элементы DOM
+    const searchButton = document.getElementById('searchButton');
+    const entityType = document.getElementById('entityType');
+    const entityId = document.getElementById('entityId');
+    const loader = document.getElementById('loader');
+    const result = document.getElementById('result');
+    const error = document.getElementById('error');
+
+    // Обработчик события клика на кнопку поиска
+    searchButton.addEventListener('click', fetchData);
+
+    function fetchData() {
+      // Получение типа сущности и ID из полей ввода
+      const type = entityType.value;
+      const id = entityId.value;
+      // Формирую URL для запроса к API
+      const url = `https://swapi.py4e.com/api/${type}/${id}/`;
+
+      // Индикатор загрузки и очистка результатов
+      showLoader();
+      clearResults();
+
+      try {
+        // Запрос к API используя fetch
+        fetch(url)
+          .then(response => {
+            // Успешен ли ответ
+            if (!response.ok) {
+              // Если ошибка
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // Ответ в JSON
+            return response.json();
+          })
+          .then(data => {
+            // Отображаю полученные данные
+            displayResult(data);
+          })
+          .catch(e => {
+            // Если в цепочке промисов ошибка, то её в блок catch
+            throw e;
+          });
+      } catch (e) {
+        // Обработка ошибки
+        handleError(e);
+      } finally {
+        // Скрыть индикатор загрузки
+        hideLoader();
+      }
+    }
+
+    function displayResult(data) {
+      // Отобразить JSON
+      // result.innerHTML = `<p>${JSON.stringify(data)}</p>`;
+      result.innerHTML = `<p>${data.name}</p>`;
+      result.classList.remove('hidden');
+    }
+
+    function handleError(e) {
+      // Обработка различных типов ошибок
+      let message;
+      if (e.message.includes('404')) {
+        message = 'Resource not found';
+      } else if (e.message.includes('500')) {
+        message = 'Server error';
+      } else {
+        message = 'An error occurred';
+      }
+      // Отображение сообщения об ошибке
+      error.textContent = message;
+      error.classList.remove('hidden');
+    }
+
+    function showLoader() {
+      // Показать индикатор загрузки
+      loader.classList.remove('hidden');
+    }
+
+    function hideLoader() {
+      // Скрыть индикатор загрузки
+      loader.classList.add('hidden');
+    }
+
+    function clearResults() {
+      // Очистить предыдущие результаты и сообщения об ошибках
+      result.innerHTML = '';
+      result.classList.add('hidden');
+      error.textContent = '';
+      error.classList.add('hidden');
+    }
+  </script>
+</body>
+
+</html>
